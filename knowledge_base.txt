@@ -1,0 +1,311 @@
+/***************************
+File:        knowledge_base.txt (1/3)
+Author:      Rutvij Shah
+Net ID:      rds190000
+Class:       AI CS 4365.002
+Project:     Knowledge Representation
+Description: Project Report
+***************************/
+
+*****************************************************
+************ Plain English Bakery Axioms ************
+*****************************************************
+
+Requirements:
+  - There are persons in our universe of discourse.
+  - There is a notion of time in our universe of discourse.
+  - There are places in our universe of discourse.
+  - There are object in our universe of discourse.
+  - Persons, places & objects have various properties.
+
+1] Bakeries sell food.
+
+2] Food sold by a bakery has to be in stock at the bakery.
+
+3] Being in stock implies that bakery has some number of that food item.
+
+3] Apples, bananas, pizza etc. are all examples of food items.
+
+4] Food sold at a bakery is either baked there or bought from elsewhere.
+
+5] People buy food at a bakery.
+
+6] People use money to buy the food.
+
+7] Money can be in the form of cash or credit card.
+
+8] Buying involves a person who buys a certain number of an item at some cost.
+
+9] Selling involves a bakery which sells a certain number of an item at some cost.
+
+10] A transaction is an event where a person buys something from a store (which
+  is selling it) by exchanging money for some quantity of goods.
+
+11] Buying implies that a person will have some quantity of the item after the
+  transaction and will see a reduction in the amount of money they have as a
+  result.
+
+12] Selling implies that a store will see a decrease in stock of a certain item
+  after the transaction but will see an increase in the amount of money it has
+  as a result.
+
+13] If a person has bought something, it implies that they had a the budget to
+  pay for the required amount of money.
+
+14] Some items have different units of quantification.
+
+15] Dozen is 12.
+
+16] Couple is 2.
+
+17] Score is 20.
+
+18] A loaf implies 1 loaf of an item (usually bread).
+
+19] Time is denoted as a date and a set of hour, minute & second values.
+
+20] If a person visited a certain place, they were there from one moment in time
+  to another.
+
+21] The duration of a visit to a certain place is the difference in time between
+ the two moments.
+
+22] A person meets another person at some place if both the people were there
+  for some overlapping period of time.
+
+23] People use electronics items.
+
+24] Tv is an electronics item.
+
+25] People eat food items.
+
+Assumptions:
+  - When the sentence says yesterday, we assume it was some time during the day
+  and not the entire day.
+
+  - We assume that the store always has the items it sells in stock and only
+  those items that it sells are ever in stock.
+
+  - We assume that cost is not directly associated with a unit of food item,
+  and that it is the total cost that is reported by the store's cashier.
+
+  - Store encompasses cashiers, bakers and all other employees.
+
+  - We assume that the money a person has is the total of their credit limit &
+  cash in hand.
+
+  - We assume that the bakery makes everything except natural items like fruits
+  in house.
+
+*****************************************************
+************** FOL Axioms & Q/A System **************
+*****************************************************
+
+FOL Axioms are encoded within the knowledge_base.pl Prolog source code file.
+
+Following are the questions that can be asked to the interpreter that has loaded
+the aforementioned file. The questions in plain English are converted to Prolog's
+syntax.
+
+*** The sale transaction is an irreversible operation and is made once for
+each Q/A session (assuming the sale is only the one mentioned earlier.)
+
+Thus for each question there will be a before transaction question part & after
+transaction question part.
+
+Following is the transaction.
+
+Person, Store, Item, Quantity, Cost.
+
+Input: sub_transaction(john, utdBakery, bagels, "dozen", 12),
+        sub_transaction(john, utdBakery, bagels, "dozen", 12),
+        sub_transaction(john, utdBakery, bread, "loaf", 2).
+
+Output: true.
+
+***
+
+--------------------------
+------- Question 1 -------
+--------------------------
+
+Does John now have at least two bagels? [Yes]
+
+ [Post-Transaction]
+ Input:  has(john, bagels, Y), Y >= 2.
+ Output: Y=24.
+
+Since Y was found matching the condition, the answer is yes.
+
+--------------------------
+------- Question 2 -------
+--------------------------
+
+Did John buy some bread? [Yes]
+
+  [Post-Transaction]
+  Input:  has(john, bread, Y).
+  Output: Y=1.
+
+Since he bought one loaf of bread, he has 1 bread, which is some amount,
+and thus the answer is Yes.
+
+--------------------------
+------- Question 3 -------
+--------------------------
+
+If Mary was buying bread at the same time as John, did he see her? [Yes!]
+
+  [Post-Transaction]
+  Input: assert(visited(mary,
+                utdBakery,
+                date(2021, 11, 16, 8, 29, 0, 0, -, -),
+                date(2021, 11, 16, 8, 32, 0, 0, -, -))),
+         assert(visited(john,
+                utdBakery,
+                date(2021, 11, 16, 8, 30, 0, 0, -, -),
+                date(2021, 11, 16, 8, 37, 0, 0, -, -))),
+         sub_transaction(mary, utdBakery, bread, 1, 2),
+         met(john, mary, utdBakery).
+
+  Output: true.
+
+As we can see, first two are assertions of the visited predicate, which
+  takes a person, a place and two time stamps showing the start and end times for
+  the person's visit to the place.
+
+Next there is a sub_transaction which shows mary was buying bread at the same
+time.
+
+Lastly met is a predicate which checks for time overlap to show that indeed the
+two likely met.
+
+--------------------------
+------- Question 4 -------
+--------------------------
+
+Are the bananas made in the bakery? [No]
+
+  Input:  source(bananas, Y).
+  Output: Y = bought.
+
+  Input:  source(bagels, Y).
+  Output: Y = baked_in_house.
+
+  Input: source(bananas, baked_in_house); source(bananas, brewed).
+  Output: false.
+
+This shows that unlike bagels, bananas aren't made in the bakery but are bought
+instead.
+
+--------------------------
+------- Question 5 -------
+--------------------------
+
+What is John going to do with the bagels? [Eat them]
+
+  Input:  utility_of_x_for_y(bagels, john, Y).
+  Output: Y = eat.
+
+We can see that indeed bagels are meant to be eaten!
+
+--------------------------
+------- Question 6 -------
+--------------------------
+
+Does UTD Bakery sell scones? [Yes]
+
+  Input:  sells(utdBakery, scones).
+  Output: true.
+
+As expected, the answer is true (yes).
+
+--------------------------
+------- Question 7 -------
+--------------------------
+
+Did John bring some money or a credit card to the bakery? [Yes]
+
+  Input:  has_cash(john); has_credit_card(john).
+  Output: true.
+
+As we can see the one or both predicates are true, and thus the answer is
+a yes!
+
+--------------------------
+------- Question 8 -------
+--------------------------
+
+Does John have less money after going to the bakery? [Yes]
+
+  [Pre-Transaction]
+
+  Input:  money(john, X).
+  Output: X = 100.
+
+  [Post-Transaction]
+
+  Input:  money(john, X).
+  Output: X = 74.
+
+We can clearly see that the money John has decreases after the transaction.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~ Additional Questions ~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1] Are scones made in the bakery? [Yes]
+
+  Input: source(bagels, baked_in_house).
+  Output: true.
+
+2] Does the bakery have more money after John buys food there? [Yes]
+
+  [Pre-Transaction]
+
+  Input:  money(utdBakery, X).
+  Output: X = 1000.
+
+  *** Transaction query, executed once per Q/A session.***
+    sub_transaction(john, utdBakery, bagels, "dozen", 12),
+      sub_transaction(john, utdBakery, bagels, "dozen", 12),
+      sub_transaction(john, utdBakery, bread, "loaf", 2).
+  ***
+
+  [Post-Transaction]
+
+  Input:  money(utdBakery, X).
+  Output: X = 1026.
+
+3] How is the coffee obtained by the bakery? [Brewed]
+
+  Input:  source(coffee, Y).
+  Output: Y = brewed.
+
+4] Are both John and Mary persons? [Yes]
+
+  Input:  person(john), person(mary).
+  Output: true.
+
+5] How many in a dozen? [12]
+
+  Input:  quantityIs("dozen", Z).
+  Output: Z = 12.
+
+6] How many are a couple? [2]
+
+  Input:  quantityIs("couple", Z).
+  Output: Z = 2.
+
+7] How long was John at the store?
+
+  Input:  assert(visited(john,
+          utdBakery,
+          date(2021, 11, 16, 8, 30, 0, 0, -, -),
+          date(2021, 11, 16, 8, 37, 0, 0, -, -))),
+          duration_of_visit(john, utdBakery, Duration).
+
+  Output: Duration = 7.
+
+John was at the bakery for 7 minutes!
